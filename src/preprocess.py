@@ -12,7 +12,7 @@ def clean_data(df):
     df = df[df["amount"] > 0]
 
     # Ensure timestamp is datetime
-    if not np.issubdtype(df["timestamp"].dtype, np.datetime64):
+    if not pd.api.types.is_datetime64_any_dtype(df["timestamp"]):
         df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
 
     df = df.dropna(subset=["timestamp"])

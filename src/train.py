@@ -22,8 +22,8 @@ os.makedirs(MODEL_DIR, exist_ok=True)
 
 def build_preprocessor(X):
     # separate numeric and categorical columns
-    numeric_cols = X.select_dtypes(include=[np.number]).columns.tolist()
-    categorical_cols = X.select_dtypes(exclude=[np.number]).columns.tolist()
+    numeric_cols = X.select_dtypes(include=[np.number, "bool"]).columns.tolist()
+    categorical_cols = X.select_dtypes(exclude=[np.number, "bool"]).columns.tolist()
 
     numeric_pipeline = Pipeline([
         ("imputer", SimpleImputer(strategy="median")),
@@ -118,8 +118,11 @@ if __name__ == '__main__':
     df = engineer_features(df)
     X, y = prepare_dataset(df)
 
-    # we may have lots of zero-variance cols after one-hot; drop constant cols
+    # Drop obvious ID-like columns if present
+    drop_cols = [col for col in X.columns if "id" in col.lower()]
+    X = X.drop(columns=drop_cols, errors="ignore")
+
+    # Drop constant columns
     X = X.loc[:, X.apply(pd.Series.nunique) > 1]
 
     best = train_and_select(X, y)
-    print('[train] Done.')
